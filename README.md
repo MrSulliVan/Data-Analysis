@@ -126,8 +126,8 @@ This function takes the coordinates of the two satellites and outputs the distan
 We can now use this function in the `new_pairwise_feature` function to generate our new feature:
 ```python
 analyzer.new_pairwise_feature(new_feature_name="distance",
-							  feature_extraction_fn=calc_distance,
-							  operand_annotation_key="object_boxes")
+			     feature_extraction_fn=calc_distance,
+			     operand_annotation_key="object_boxes")
 ```
 We now have a new set of annotations which was stored in `analyzer.pairwise_annotations["distance"]`.
 
@@ -137,9 +137,9 @@ Now that we have the feature that we want to evaluate, we can calculate the stat
 Since we made a pairwise feature we will use `calculate_pairwise_stats`:
 ```python
 analyzer.calculate_pairwise_stats(feature="distance",
-								  iou_threshold=.85,
-								  normalized_coordinates=False,
-								  image_size=[512.0, 512.0])
+				  iou_threshold=.85,
+				  normalized_coordinates=False,
+				  image_size=[512.0, 512.0])
 ```
 This will store the True Positive, False Positive, and False Negatives as a list for each annotation in the `pairwise_annotations["distance"]` list.
 Each annotation dict will have new keys for each:
@@ -167,16 +167,16 @@ ax2.set_yticks(np.arange(0.0, 1.0, 0.1))
 Put pair distances into a list to use on a histogram:
 ```python
 _sat_distances = [a['distance']
-				  for a in analyzer.pairwise_annotations["distance"]]
+		  for a in analyzer.pairwise_annotations["distance"]]
 
 # convert distances list to numpy array for matplotlib hist function
 _sat_distances_np = np.array(_sat_distances, dtype=np.float64)
 
 # plot histogram onto ax1 to show distribution of distances between sats.
 _, _bins, _ = ax1.hist(x=_sat_distances_np,
-					   color="blue",
-					   alpha=0.5,
-					   bins=100)
+		       color="blue",
+		       alpha=0.5,
+		       bins=100)
 ```
 
 ### Split the Annotations
@@ -186,9 +186,9 @@ We can do this by using the `analyzer.split_annotations` function and giving it 
 ```python
 # split annotations into bins based on distance between sats
 analyzer.split_annotations(feature="distance",
-						   bins=_bins,
-						   feature_type=analyzer.SplitTypes.SCALAR,
-						   pairwise=True)
+			   bins=_bins,
+			   feature_type=analyzer.SplitTypes.SCALAR,
+			   pairwise=True)
 ```
 This gives us yet another set of annotations which are split into the given bins.
 They are stored in `analyzer.pairwise_annotations_binned["distance"]`.
@@ -198,11 +198,11 @@ With the split annotations, we can do bin recall and precision measurements:
 ```python
 # Calculate the recalls of binned distance data, smooth to 3 bins.
 _recall_bins, _recall_values = analyzer.binned_pairwise_recalls(feature="distance",
-																smoothing=3)
+								smoothing=3)
 
 # Calculate the precisions of binned distance data, smooth to 3 bins.
 _precision_bins, _precision_values = analyzer.binned_pairwise_precisions(feature="distance",
-																		 smoothing=3)
+									 smoothing=3)
 ```
 We will then combine these measurements into an F1 score to plot on our graph:
 ```python
@@ -215,8 +215,8 @@ for _recall, _precision in zip(_recall_values, _precision_values):
 
 # Plot F1 scores over histogram on ax2, recall bins are the same as F1 bins
 ax2.plot(_recall_bins,
-		 _f1_values,
-		 color="red")
+	 _f1_values,
+	 color="red")
 # Show the graph.
 plt.show()
 ```

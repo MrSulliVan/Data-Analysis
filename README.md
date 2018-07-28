@@ -67,7 +67,7 @@ analyzer = DataAnalyzer(_annotations)
 Each of our annotations needs corresponding evaluation data to calculate accuracy statistics.
 
 We get this data by running our annotations through our model and storing the output into a pickle file.
-You can create a class which inherits [EvaluationGenerator](EvalutionGenerator.py) in order to generate this evaluation data.
+You can create a class which inherits [EvaluationGenerator](EvaluationGenerator.py) in order to generate this evaluation data.
 
 Once the evaluation pickle file is made, it is simple to get it into the DataAnalyzer:
 

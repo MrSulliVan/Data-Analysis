@@ -230,4 +230,4 @@ Finally we get to see our hard work pay off with a beautiful (and extremely usef
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details

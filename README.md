@@ -14,9 +14,11 @@ We decided that each annotation should be in the form of a dictionary.
 Only three main keys need to be used when converting your annotations to the standardized form:
 * **"image_name"** - A list of **unique** image names(or just unique names) for each annotation.
 * **"object_classes"** - A list containing the object class for each ground truth object.
-						[class,class] classes can be integers or strings
+
+[class,class] classes can be integers or strings
 * **"object_boxes"** - A list containing the object box for each ground truth object.
-						[box,box] boxes can be in the form [ymin, xmin, ymax, xmax] or [x, y, width, height].
+
+[box,box] boxes can be in the form [ymin, xmin, ymax, xmax] or [x, y, width, height].
 #### Example
 Using SatNet as an example, we store our annotations in text files where each text file contains a line for each ground truth object in the image.
 It is in a structure like the following:
@@ -126,8 +128,8 @@ This function takes the coordinates of the two satellites and outputs the distan
 We can now use this function in the `new_pairwise_feature` function to generate our new feature:
 ```python
 analyzer.new_pairwise_feature(new_feature_name="distance",
-			     feature_extraction_fn=calc_distance,
-			     operand_annotation_key="object_boxes")
+			      feature_extraction_fn=calc_distance,
+			      operand_annotation_key="object_boxes")
 ```
 We now have a new set of annotations which was stored in `analyzer.pairwise_annotations["distance"]`.
 

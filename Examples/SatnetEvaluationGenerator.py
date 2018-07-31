@@ -131,74 +131,126 @@ class SatnetEvaluationGenerator(EvaluationGenerator):
         super(SatnetEvaluationGenerator, self).__init__(annotations)
 
     def _write_tfrecords_file(self, annotations, path_to_tfrecords):
-        files_dir = r"\\pds-fs.pacificds.com\Users\gmartin\tensorflow\false_positives\datat\JSON"
+        """Write single tfrecords file from annotations
+
+        Args:
+            annotations: Annotations to convert into tfrecords file
+            path_to_tfrecords: Path to tfrecords file to be created
+
+        Outputs:
+            tfrecords file with converted annotations data
+        """
+
+        #  Path to root of annotations directory
+        files_dir = r"path/to/annotations/root"
+
+        # strings to store all paths to sample images and annotations
         image_str = ""
         annot_str = ""
+
+        # List of unique image names based on directory_imagename.png structure
         actual_imagename_list = list()
+
+        # Add all annotations to path strings
         for annotation in annotations:
+
             actual_imagename_list.append(annotation['image_name'])
+
+            # Get image name without directory name
             directory, image_name = annotation['image_name'].split('_', 1)
+
+            # Append image path to string
             image_str += os.path.join(files_dir,
                                       directory,
                                       "ImageFiles",
                                       image_name.replace('.png',
                                                          '.jpg')) + '\n'
+
+            # Append annotation path to string
             annot_str += os.path.join(files_dir,
                                       directory,
                                       "Annotations",
                                       image_name.replace('.png',
                                                          '.txt')) + '\n'
 
+        # Split image paths into list
         image_path_list = image_str.split('\n')
+
         # remove the last '' element from the list
         image_path_list = image_path_list[:-1]
 
+        # Split annotation paths into list
         annot_path_list = annot_str.split('\n')
+
         # remove the last '' element from the list
         annot_path_list = annot_path_list[:-1]
 
+        # Get total number of annotations
         num_examples = len(image_path_list)
 
-        # Build a writer for the tfrecord.
-        print('Writing to', path_to_tfrecords, '... Num_records = ',
+        print('Writing to',
+              path_to_tfrecords,
+              '... Num_records = ',
               num_examples)
+
+        # Build a writer for the tfrecord.
         writer = tf.python_io.TFRecordWriter(path_to_tfrecords)
 
-        # Iterate over the examples.
+        # Iterate over all annotations
         for index in tqdm(range(num_examples)):
+
+            # Open and encode image file
             with tf.gfile.GFile(image_path_list[index], 'rb') as fid:
+
                 encoded_jpg = fid.read()
+
             encoded_jpg_io = io.BytesIO(encoded_jpg)
+
             image = Image.open(encoded_jpg_io)
+
+            # Make sure image is jpg
             if image.format != 'JPEG':
-                raise ValueError('Image format not JPEG')
+
+                print("Image format not JPEG")
+                raise ValueError
+
             key = hashlib.sha256(encoded_jpg).hexdigest()
+
             # convert to a numpy array:
             image = np.array(image)
+
+            # Get image shape height, width, channels
             h = int(image.shape[0])
             w = int(image.shape[1])
             c = int(image.shape[2])
-            # check if RGBA format and convert to RGB if true:
+
+            # Check if image is RGBA format
             if c == 4:
-                raise ValueError('Image is RGBA')
 
-            annotations = read_satnet_annotation_file(annot_path_list[index])
+                print("Image is RGBA, must be RGB")
+                raise ValueError
+
+            # Get annotation data from txt file
+            annot = read_satnet_annotation_file(annot_path_list[index])
+
             # Note: annotation data is already normalized:
-            ymin_norm = annotations['y_min']
-            ymax_norm = annotations['y_max']
+            ymin_norm = annot['y_min']
+            ymax_norm = annot['y_max']
 
-            xmin_norm = annotations['x_min']
-            xmax_norm = annotations['x_max']
+            xmin_norm = annot['x_min']
+            xmax_norm = annot['x_max']
 
-            # filename = image_path_list[index].split('/')[-1]
+            # Get unique image name
             filename = actual_imagename_list[index]
 
-            label = annotations['class_id']
+            # Get annotation data based on annotation file
+            label = annot['class_id']
             text = [CLASS_TEXT[x].encode('utf8') for x in label]
-            difficult_obj = annotations['difficult']
-            truncated = annotations['truncated']
-            poses = annotations['poses']
+            difficult_obj = annot['difficult']
+            truncated = annot['truncated']
+            poses = annot['poses']
 
+            # Create tf example with annotation and image data
             example = tf.train.Example(features=tf.train.Features(feature={
                 'image/height': dataset_util.int64_feature(h),
                 'image/width': dataset_util.int64_feature(w),
@@ -229,7 +281,10 @@ class SatnetEvaluationGenerator(EvaluationGenerator):
                     truncated),
                 'image/object/view': dataset_util.bytes_list_feature(poses),
             }))
+
+            # Write example to tfrecords file
             writer.write(example.SerializeToString())
+
         writer.close()
 
     def _infer_and_pickle(self, tfrecords_file_path, output_dir):
@@ -251,16 +306,18 @@ class SatnetEvaluationGenerator(EvaluationGenerator):
                     [ymin, xmin, ymax, xmax]
         """
 
-        frozen_graph_path = "C:/Users/Sean Sullivan/PycharmProjects/DataAnalysis/sat_net/exported_graphs/train-3/frozen_inference_graph.pb"
-        labels_map_path = "C:/Users/Sean Sullivan/PycharmProjects/DataAnalysis/sat_net/label_data/astronet_label_map_2.pbtxt"
+        # Path to frozen model graph
+        frozen_graph_path = "path/to/frozen/graph.pb"
 
-        # Instantiate a batch evaluator - replace for different analysis.
+        # Path to model label map
+        labels_map_path = "path/to/labels/map.pbtxt"
+
+        # Instantiate a batch evaluator
         evaluator = AstroNetEvaluateBatch(
             path_to_frozen_graph=frozen_graph_path,
             path_to_labels_map=labels_map_path)
 
-        # Core inference and pickle function
-        # *replace for different analysis.*
+        # Process tfrecord and generate pickle file with evaluation data
         evaluator.process_tfrecords(tfrecords_file_path,
                                     output_dir,
                                     1,
@@ -273,7 +330,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--annotations_directory',
                         type=str,
-                        default="C:/Users/Sean Sullivan/Documents/share/datat/JSON",
+                        default="path/to/annotations/directory",
                         help="Base directory containing annotation folders")
     parser.add_argument('--tfrecords_directory',
                         type=str,

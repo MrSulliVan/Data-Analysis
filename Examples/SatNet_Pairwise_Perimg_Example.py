@@ -126,18 +126,16 @@ def least_distance_only(annotation, new_annotations):
 if __name__ == "__main__":
 
     # Specify a root directory for SatNet annotations
-    _root_dir = "C:/Users/Sean Sullivan/Documents/share/datat/JSON"
+    _root_dir = "path/to/annotations/root"
 
     # Map SatNet annotation text file structure to python list of dicts.
     _annotations = get_satnet_annotations(_root_dir)
-
-    # Non-application-specific code below this line.
 
     # Instantiate DataAnalyzer, given a list of annotation dicts.
     analyzer = DataAnalyzer(_annotations)
 
     # Ingest pickle files containing evaluation data.
-    analyzer.ingest_multiple_evaluations(directory="data/evaluations/original",
+    analyzer.ingest_multiple_evaluations(directory="path/to/evaluations",
                                          recursive=True)
 
     # Remove boxes, scores, and classes for evaluations with scores < 0.5.
